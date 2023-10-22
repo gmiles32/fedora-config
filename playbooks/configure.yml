@@ -1,0 +1,137 @@
+- name: DNF configuration
+  hosts: "{{ host }}"
+  vars_files:
+    - ../vars/vault.yml
+  tags:
+    - full
+  tasks:
+    - name: Configure DNF to be faster
+      blockinfile:
+        path: /etc/dnf/dnf.conf
+        block: |
+          max_parallel_downloads=10
+          fastestmirror=True
+    - name: Enable free repositories (RPM fusion)
+      command: echo y | sudo dnf install \
+               https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+    - name: Enable non free repositories (RPM fusion)
+      command: echo y | sudo dnf install \
+               https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+    - name: Update DNF packages
+      dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+        update_only: yes
+
+- name: Install + configure DNF/flatpak packages
+  hosts: "{{ host }}"
+  vars_files:
+    - ../vars/vault.yml
+  roles:
+    - role: grog.package
+    - role: geerlingguy.pip
+  tags:
+    - full
+  tasks:
+    - name: Create desktop entry for nemo
+      file:
+        path: "{{ home }}/.local/share/applications/nemo"
+        state: touch
+    - name: Write contents for nemo desktop entry
+      copy: 
+        dest: "{{ home }}/.local/share/applications/nemo"
+        content: |
+          [Desktop Entry]
+          Encoding = UTF-8
+          Name = Nemo File Manager
+          Exec = /usr/bin/nemo
+          Icon = nemo
+          Type = Application
+          Categories = Development
+    - name: Install flatpak packages
+      loop: "{{ flatpak_list }}"
+      flatpak:
+        name: "{{ item }}"
+        state: present
+
+- name: Install themes + configure gnome
+  hosts: "{{ host }}"
+  vars_files:
+    - ../vars/vault.yml
+  tags:
+    - full
+    - gnome
+  # roles:
+  #   - role: luizgavalda.gnome_extensions
+  tasks:
+    - name: Install + enable gnome extensions
+      loop: "{{ gnome_extensions }}"
+      command: gext install "{{ item }}" gext enable "{{ item }}"
+      args:
+        chdir: "{{ home }}"
+    - name: Make directory for themes
+      file:
+        name: "{{ home }}/.themes"
+        state: directory
+    - name: Make directory for icons
+      file: 
+        name: "{{ home }}/.local/share/icons"
+        state: directory
+    - name: Remove WhiteSur theme directory, if it exist
+      file:
+        path: "{{ home }}/WhiteSur-gtk-theme"
+        state: absent
+    - name: Remove WhiteSur icon directory, if it exist
+      file:
+        path: "{{ home }}/WhiteSur-icon-theme"
+        state: absent
+    - name: Clone WhiteSur theme
+      command: git clone https://github.com/vinceliuice/WhiteSur-gtk-theme.git
+      args:
+        chdir: "{{ home }}"
+    - name: Install WhiteSur theme
+      command: ./install.sh -d {{ home }}/.themes -o normal -c Dark -i fedora -l -t all
+      args:
+        chdir: "{{ home }}/WhiteSur-gtk-theme"
+    - name: Adjust theme for flatpak
+      command: sudo flatpak override --filesystem=xdg-config/gtk-4.0
+      # args:
+      #   chdir: "{{ home }}"WhiteSur-gtk-theme
+    - name: Clone WhiteSur icon theme
+      command: git clone https://github.com/vinceliuice/WhiteSur-icon-theme.git
+      args: 
+        chdir: "{{ home }}"
+    - name: Install icon theme
+      command: ./install.sh -a -b -t all
+      args: 
+        chdir: "{{ home }}/WhiteSur-icon-theme"
+    - name: Remove WhiteSur theme directory
+      file:
+        path: "{{ home }}/WhiteSur-gtk-theme"
+        state: absent
+    - name: Remove WhiteSur icon directory
+      file:
+        path: "{{ home }}/WhiteSur-icon-theme"
+        state: absent
+    - name: Install Bibata cursor theme
+      block:
+        - name: Pull package
+          command: wget https://github.com/ful1e5/Bibata_Cursor/releases/download/v2.0.4/Bibata-Modern-Classic.tar.xz
+          args:
+            chdir: "{{ home }}"
+        - name: Expand tar file
+          command: tar -xvf Bibata-Modern-Classic.tar.xz
+          args:
+            chdir: "{{ home }}"
+        - name: Install cursor
+          command: cp -r Bibata-Modern-Classic {{ home }}/.local/share/icons/
+          args: 
+            chdir: "{{ home }}"
+        - name: Remove tar file
+          command: rm -rf {{ home }}/Bibata-Modern-Classic.tar.xz {{ home }}/Bibata-Modern-Classic
+    # - name: Install dynamic background
+    #   command: curl -s https://wallpapers.manishk.dev/install.sh | bash -s 'Catalina'
+    #   args:
+    #     chdir: "{{ home }}"
+

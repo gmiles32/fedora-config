@@ -1,0 +1,51 @@
+# general
+home: "/home/gabe"
+
+# grog.package
+package_list:
+  - name: vim
+  - name: neovim
+  - name: rsync
+  - name: net-tools
+  - name: git
+  - name: firewalld
+  - name: nfs-utils
+  - name: wget
+  - name: nautilus
+    state: absent
+  - name: nemo
+  - name: syncthing
+  - name: pymol
+  - name: gnome-tweaks 
+  - name: glib2-devel # for WhiteSur
+  - name: jetbrains-mono-fonts
+  - name: google-roboto-fonts
+package_update_cache: yes
+
+# geerlingguy.pip
+pip_install_packages:
+  - name: gnome-extensions-cli
+  - name: psutil
+
+# flatpak packages
+flatpak_list:
+  - com.bitwarden.desktop
+  - com.discordapp.Discord
+  - com.github.micahflee.torbrowser-launcher
+  - com.github.tchx84.Flatseal
+  - com.spotify.Client
+  - com.visualstudio.code
+  - md.obsidian.Obsidian
+  - org.gnome.Extensions
+  - org.inkscape.Inkscape
+  - org.zotero.Zotero
+  - us.zoom.Zoom
+
+# gnome extensions
+gnome_extensions:
+  - user-theme@gnome-shell-extensions.gcampax.github.com
+  - gTile@vibou
+  - blur-my-shell@aunetx
+  - rounded-window-corners@yilozt
+  - caffeine@patapon.info
+  - drive-menu@gnome-shell-extensions.gcampax.github.com

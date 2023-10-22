@@ -1,0 +1,18 @@
+# grog.package
+package_list:
+  # general
+  - name: vim
+  - name: neovim
+  - name: rsync
+  - name: net-tools
+  - name: git
+  - name: firewalld
+  - name: nfs-utils
+  - name: wget
+  - name: nautilus
+    state: absent
+  - name: nemo
+  # workstation specific
+  - name: akmod-nvidia
+  - name: xorg-x11-drv-nvidia-cuda
+package_update_cache: yes

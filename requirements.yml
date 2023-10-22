@@ -1,0 +1,8 @@
+collections:
+  - name: ansible.posix
+  # - name: community.docker
+
+roles: 
+  - src: grog.package
+  - src: geerlingguy.pip
+  - src: luizgavalda.gnome_extensions
